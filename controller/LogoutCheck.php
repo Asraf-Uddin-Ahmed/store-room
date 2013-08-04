@@ -1,0 +1,1 @@
+<?php		require_once("../model/RegisterFormModel.phpm");		session_start();		if( isset($_POST['yes']) ) {		session_destroy();		header("Location: ../view/login.php");	}	else if( isset($_POST['no']) ) {		header("Location: ../view/home.php");	}	?>

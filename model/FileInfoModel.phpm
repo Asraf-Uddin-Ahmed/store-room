@@ -1,0 +1,137 @@
+<?php
+
+class FileInfoModel {
+	
+	private $_con;
+	private $_dbName;
+	private $_password;
+	private $_userName;
+	private $_tableName;
+	
+	/*
+		init variables
+		create connection
+		create database
+		select database
+		create table
+	*/
+	public function __construct() {
+		$this->_dbName = "store_room";
+		$this->_password = "123";
+		$this->_userName = "root";
+		$this->_tableName = "file_info";
+		
+		$this->_con = mysql_connect("localhost", "$this->_userName","$this->_password");
+		
+		mysql_query("CREATE DATABASE $this->_dbName", $this->_con);
+		mysql_select_db("$this->_dbName", $this->_con);
+		
+		$this->createTable();
+	}
+	
+	/*
+	*/
+	public function createTable() {
+		$sql = "CREATE TABLE `$this->_tableName` (
+				`file_id`  int NOT NULL AUTO_INCREMENT ,
+				`file_name`  varchar(255) NOT NULL ,
+				`file_type`  varchar(255) NOT NULL ,
+				`file_size`  int NOT NULL ,
+				`file_path`  varchar(255) NOT NULL ,
+				`file_status`  varchar(255) NOT NULL ,
+				`user_id`  int NOT NULL ,
+				PRIMARY KEY (`file_id`)
+				);";
+		if ( !mysql_query($sql, $this->_con) )
+			return mysql_error();
+		return true;
+	}
+	
+	/*
+	*/
+	public function insertValues($fileName, $fileType, $fileSize, $filePath, $fileStatus,  $userId) {
+		$sql = "INSERT INTO `$this->_tableName` VALUES (null, '$fileName', '$fileType', '$fileSize','$filePath', '$fileStatus',  '$userId')";
+		if ( !mysql_query($sql, $this->_con) )
+			return mysql_error();
+		return true;
+	}
+	
+	/*
+	*/
+	public function getFileInfoSearch($fileName) {
+		$arrayResult = array(array());
+		$sql = "SELECT * from $this->_tableName WHERE file_name like '%$fileName%' and file_status='public';";
+		$result = mysql_query($sql, $this->_con);
+		for($I=0; $row=mysql_fetch_array($result); $I++) {
+			$arrayResult[$I] = array($row['file_id'], $row['file_name'], $row['file_type'], $row['file_size']);
+		}
+		return $arrayResult;
+	}
+	
+	/*
+	*/
+	public function getFileInfoUser($userId) {
+		$arrayResult = array(array());
+		$sql = "SELECT * from $this->_tableName WHERE user_id = '$userId';";
+		$result = mysql_query($sql, $this->_con);
+		for($I=0; $row=mysql_fetch_array($result); $I++) {
+			$arrayResult[$I] = array($row['file_id'], $row['file_name'], $row['file_type'], $row['file_size'], $row['file_status']);
+		}
+		return $arrayResult;
+	}
+	
+	/*
+	*/
+	public function getUsedSizeUser($userId) {
+		$usedSize = 0;
+		$sql = "SELECT * from $this->_tableName WHERE user_id = '$userId';";
+		$result = mysql_query($sql, $this->_con);
+		for($I=0; $row=mysql_fetch_array($result); $I++) {
+			$usedSize += $row['file_size'];
+		}
+		return $usedSize;
+	}
+	
+	/*
+	*/
+	public function getFileType($fileId) {
+		$sql = "SELECT * from $this->_tableName WHERE file_id = '$fileId';";
+		$result = mysql_query($sql, $this->_con);
+		if( $row=mysql_fetch_array($result) )
+			return $row['file_type'];
+		return null;
+	}
+	
+	/*
+	*/
+	public function getFilePath($fileId) {
+		$sql = "SELECT * from $this->_tableName WHERE file_id = '$fileId';";
+		$result = mysql_query($sql, $this->_con);
+		if( $row=mysql_fetch_array($result) )
+			return $row['file_path'];
+		return null;
+	}
+	
+	/*
+	*/
+	public function updateFileStatus($fileId, $fileStatus) {
+		$sql = "UPDATE file_info SET file_status = '$fileStatus' WHERE file_id = '$fileId';";
+		return (mysql_query($sql, $this->_con));
+	}
+	
+	/*
+	*/
+	public function deleteFile($fileId) {
+		$sql = "DELETE from file_info WHERE file_id = '$fileId';";
+		return (mysql_query($sql, $this->_con));
+	}
+	
+	/*
+		close connection
+	*/
+	public function __destruct() {
+		mysql_close($this->_con);
+	}
+}
+
+?>

@@ -1,0 +1,108 @@
+<?php
+
+class RegisterFormModel {
+	
+	private $_con;
+	private $_dbName;
+	private $_password;
+	private $_userName;
+	private $_tableName;
+	
+	/*
+		init variables
+		create connection
+		create database
+		select database
+		create table
+	*/
+	public function __construct() {
+		$this->_dbName = "store_room";
+		$this->_password = "123";
+		$this->_userName = "root";
+		$this->_tableName = "user_info";
+		
+		$this->_con = mysql_connect("localhost", "$this->_userName","$this->_password");
+		
+		mysql_query("CREATE DATABASE $this->_dbName", $this->_con);
+		mysql_select_db("$this->_dbName", $this->_con);
+		
+		$this->createTable();
+	}
+	
+	/*
+	*/
+	public function createTable() {
+		$sql = "CREATE TABLE `$this->_tableName` (
+			`id`  int NOT NULL AUTO_INCREMENT ,
+			`user_name`  varchar(255) NOT NULL ,
+			`password`  varchar(255) NOT NULL ,
+			`first_name`  varchar(255) NOT NULL ,
+			`last_name`  varchar(255) NOT NULL ,
+			`email`  varchar(255) NOT NULL ,
+			PRIMARY KEY (`id`)
+			);";
+		if ( !mysql_query($sql, $this->_con) )
+			return mysql_error();
+		return true;
+	}
+	
+	/*
+	*/
+	public function insertValues($userName, $password, $firstName, $lastName, $email) {
+		$sql = "INSERT INTO `$this->_tableName` VALUES (null, '$userName', '$password', '$firstName', '$lastName', '$email')";
+		if ( !mysql_query($sql, $this->_con) )
+			return mysql_error();
+		return true;
+	}
+	
+	/*
+	*/
+	public function isExistUserName($userName) {
+		$sql = "SELECT * from $this->_tableName WHERE user_name = '$userName';";
+		$result = mysql_query($sql, $this->_con);
+		if( mysql_fetch_array($result) )
+			return true;
+		return false;
+	}
+	
+	/*
+	*/
+	public function getUserId($userName) {
+		$sql = "SELECT * from $this->_tableName WHERE user_name = '$userName';";
+		$result = mysql_query($sql, $this->_con);
+		if( $row = mysql_fetch_array($result) )
+			return $row['id'];
+		return -1;
+	}
+	
+	/*
+	*/
+	public function isValidUser($userName, $password) {
+		$sql = "SELECT * from $this->_tableName WHERE user_name = '$userName' and password = '$password';";
+		$result = mysql_query($sql, $this->_con);
+		if( mysql_fetch_array($result) )
+			return true;
+		return false;
+	}
+	
+	/*
+	*/
+	public function getAllUser($userName) {
+		$arrayResult = array(array());
+		$sql = "SELECT * from $this->_tableName WHERE user_name != '$userName';";
+		$result = mysql_query($sql, $this->_con);
+		for($I=0; $row=mysql_fetch_array($result); $I++) {
+			$arrayResult[$I] = array( $row['user_name'], $row['first_name'], $row['last_name'], $row['email']);
+		}
+		return $arrayResult;
+	}
+	
+	/*
+		close connection
+	*/
+	public function __destruct() {
+		mysql_close($this->_con);
+	}
+}
+
+?>
